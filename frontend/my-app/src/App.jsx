@@ -4,6 +4,7 @@ import Home from "./pages/home"
 import Pref from "./pages/pref"
 import './App.css'
 
+
 function App() {
   return (
     <Router>
