@@ -1,9 +1,5 @@
 import { Link } from "react-router-dom"
 import '../App.css'
-import logo from "frontend/my-app/src/assets/sparkhacks-logo.svg";
-
-import { Link } from "react-router-dom"
-import '../App.css'
 
 export default function Sidebar() {
   return (
