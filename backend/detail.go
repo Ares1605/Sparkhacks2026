@@ -1,28 +1,37 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
 func detials_handler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	providers, err := database.GetAllProviders(r.Context())
+	provider, exists, err := database.GetProviderStatusByID(r.Context(), 1)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&ErrorResponse{Err: err.Error()})
+		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	var provider_details = []ProviderDetails{}
-	for _, provider := range providers {
-		provider_details = append(provider_details, ProviderDetails{
-			Name:       provider.Name,
-			LastSynced: provider.LastSync.String(),
-		})
+	type AmazonProviderDetails struct {
+		LoggedIn   bool    `json:"logged_in"`
+		LastSynced *string `json:"last_synced"`
+		Username   *string `json:"username"`
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&OkResponse{Data: provider_details})
+	type ProviderDetailsResponse struct {
+		Amazon AmazonProviderDetails `json:"amazon"`
+	}
+
+	response := ProviderDetailsResponse{
+		Amazon: AmazonProviderDetails{
+			LoggedIn:   exists,
+			LastSynced: nil,
+			Username:   nil,
+		},
+	}
+	if exists {
+		response.Amazon.LastSynced = provider.LastSync
+		response.Amazon.Username = provider.Username
+	}
+
+	writeResponse(w, http.StatusOK, response)
 }

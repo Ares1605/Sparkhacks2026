@@ -1,0 +1,21 @@
+{
+  "amazon_discount": null,
+  "order_number": "113-3060050-1002666",
+  "coupon_savings": null,
+  "free_shipping": null,
+  "gift_card": null,
+  "shipping_total": 6.99,
+  "subtotal": 17.9,
+  "order_placed_date": "2026-02-06",
+  "order_details_link": "https://www.amazon.com/gp/your-account/order-details?orderID=113-3060050-1002666",
+  "items": [
+    {
+      "image_link": "https://m.media-amazon.com/images/I/71beJ-ZVzNL._SS284_.jpg",
+      "price": 17.9,
+      "quantity": null,
+      "title": "Thermalright Assassin X120 Refined SE CPU Air Cooler, 4 Heat Pipes, TL-C12C PWM Fan, Aluminium Heatsink Cover, AGHP Technology, for AMD AM4/AM5/Intel LGA 1150/1151/1155/1200/1700/1851(AX120 R SE)",
+      "condition": null,
+      "link": "https://www.amazon.com/dp/B09LHBFPJ6?ref_=ppx_hzod_title_dt_b_fed_asin_title_0_0"
+    }
+  ]
+}

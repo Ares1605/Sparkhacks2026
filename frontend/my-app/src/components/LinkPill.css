@@ -1,0 +1,19 @@
+.link-pill {
+  display: inline-block;
+  padding: 8px 20px;
+  margin: 5px 0;
+  width: 70px;
+  border-radius: 9999px; /* pill shape */
+  background-color: #1e3a8a; /* dark blue background */
+  color: #60a5fa; /* text color */
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  opacity: 0.50;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.link.pill:hover {
+  background-color: #60a5fa;
+  color: #1e3a8a;
+}

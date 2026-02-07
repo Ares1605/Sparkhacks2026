@@ -3,7 +3,9 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -32,44 +34,78 @@ func (db Database) GetAllProviders(ctx context.Context) ([]Provider, error) {
 	return providers, nil
 }
 
-func (db Database) GetProviderId(ctx context.Context, name string) error {
-	row := db.sqldb.QueryRowContext(ctx, sqlGetProviderId, name)
-	if row.Err() != nil {
-		return row.Err()
+func (db Database) GetProviderStatusByID(ctx context.Context, providerID int) (ProviderStatus, bool, error) {
+	row := db.sqldb.QueryRowContext(ctx, sqlGetProviderStatusByID, providerID)
+
+	var username sql.NullString
+	var lastSync sql.NullString
+	if err := row.Scan(&username, &lastSync); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ProviderStatus{}, false, nil
+		}
+		return ProviderStatus{}, false, err
 	}
 
-	var o Order
-	err := row.Scan(&o.Id, &o.ProviderId, &o.Name, &o.Price, &o.OrderDate)
-	if err != nil {
-		return err
+	status := ProviderStatus{}
+	if username.Valid {
+		value := strings.TrimSpace(username.String)
+		status.Username = &value
+	}
+	if lastSync.Valid {
+		value := strings.TrimSpace(lastSync.String)
+		if value != "" {
+			status.LastSync = &value
+		}
 	}
 
-	return nil
+	return status, true, nil
 }
 
-func (db Database) DeleteOrdersFromProvider(ctx context.Context, providerID string) error {
-	_, err := db.sqldb.ExecContext(ctx, sqlDeleteByProvider, providerID)
-	if err != nil {
-		return err
+func (db Database) GetProviderCredentialsByID(ctx context.Context, providerID int) (ProviderCredentials, bool, error) {
+	row := db.sqldb.QueryRowContext(ctx, sqlGetProviderCredentialsByID, providerID)
+
+	var username sql.NullString
+	var password sql.NullString
+	if err := row.Scan(&username, &password); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ProviderCredentials{}, false, nil
+		}
+		return ProviderCredentials{}, false, err
 	}
 
-	return nil
+	return ProviderCredentials{
+		Username: strings.TrimSpace(username.String),
+		Password: password.String,
+	}, true, nil
 }
 
-func (db Database) InsertOrder(ctx context.Context, o Order) error {
+func (db Database) UpsertProviderCredentials(
+	ctx context.Context,
+	providerID int,
+	providerName string,
+	username string,
+	password string,
+) error {
 	_, err := db.sqldb.ExecContext(
 		ctx,
-		sqlInsertOrder,
-		o.Id, o.ProviderId, o.Name, o.Price, o.OrderDate.String(),
+		sqlUpsertProviderCredentials,
+		providerID,
+		providerName,
+		username,
+		password,
 	)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-func (db Database) ReplaceOrdersForProvider(ctx context.Context, providerID string, orders []Order) (err error) {
+func (db Database) ReplaceOrdersForProvider(
+	ctx context.Context,
+	providerID string,
+	providerRecordID int,
+	providerName string,
+	providerUsername *string,
+	lastSync string,
+	orders []Order,
+) (err error) {
 	tx, err := db.sqldb.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -93,6 +129,23 @@ func (db Database) ReplaceOrdersForProvider(ctx context.Context, providerID stri
 		); err != nil {
 			return err
 		}
+	}
+
+	var usernameValue any
+	if providerUsername != nil {
+		usernameValue = strings.TrimSpace(*providerUsername)
+	}
+
+	if _, err = tx.ExecContext(
+		ctx,
+		sqlUpsertProviderSync,
+		providerRecordID,
+		providerName,
+		lastSync,
+		usernameValue,
+		providerRecordID,
+	); err != nil {
+		return err
 	}
 
 	if err = tx.Commit(); err != nil {
