@@ -3,8 +3,17 @@ from amazonorders.orders import AmazonOrders
 from dotenv import load_dotenv
 import os
 import json
+import sys
 
 load_dotenv()
+
+# We would like to mock the Amazon data, for testing purposes
+if os.getenv("AMAZON_MOCK_SYNC") == "1":
+    script_directory = os.path.dirname(os.path.abspath(sys.argv[0]))
+    print(script_directory)
+    with open(os.path.join(script_directory, "amazon-mock-data.json"), "r") as mock_file:
+        print(mock_file.read(), flush=True)
+        exit(0)
 
 amazon_session = AmazonSession(os.getenv("AMAZON_USERNAME"),
                                os.getenv("AMAZON_PASSWORD"),
