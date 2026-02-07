@@ -7,7 +7,7 @@ export default function Sidebar() {
 
       <h2 style = {{ fontWeight: "800", fontSize: "1.4rem"}}>PreCog</h2>
 
-      <p>Navigation</p>
+      <p>Navigation:</p>
 
       <LinkPill to="/">Home</LinkPill>
       <br />
