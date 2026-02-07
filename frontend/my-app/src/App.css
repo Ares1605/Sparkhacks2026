@@ -1,5 +1,5 @@
 .layout {
-  display: block;
+  display: flex;
   min-height: 100vh;
   box-sizing: border-box;
   padding: 24px;
@@ -9,14 +9,14 @@
   gap: 32px;
   display: flex;
   flex-direction: column;
-  padding-right: 200px;
-  box-sizing: border-box;
+
+  width: calc(100% - 250px);
+  margin-right: 0;
 }
 
 .mainBox,
 .subBox {
   width: 100%;
-  max-width: 1100px;
   border-radius: 16px;
   background: #111827;
   padding: 24px;
@@ -32,7 +32,7 @@
   border-radius: 12px;
   background-color: #1f2937;
   color: white;
-  padding: 20px;
+  padding: 5px;
   position: fixed;
   top: 20px;
   right: 20px;
