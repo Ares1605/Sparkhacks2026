@@ -36,12 +36,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/responses"
 )
 
-type EmptyStruct struct {}
+type EmptyStruct struct{}
 
 // func Call(messages []Message) (string, error) {
 // 	// Transform the messages to OpenAI messages
@@ -79,7 +80,6 @@ func Call(messages []Message, tools []Tool) (string, error) {
 		return "", err
 	}
 
-
 	toolNamesMap, err := getToolNamesMap(tools)
 	if err != nil {
 		return "", err
@@ -90,7 +90,7 @@ func Call(messages []Message, tools []Tool) (string, error) {
 	ctx := context.Background()
 
 	params := responses.ResponseNewParams{
-		Model: openai.ChatModelGPT5_2,
+		Model:       openai.ChatModelGPT5_2,
 		Temperature: openai.Float(0),
 		Input: responses.ResponseNewParamsInputUnion{
 			OfInputItemList: openaiMessages,
@@ -113,10 +113,17 @@ func Call(messages []Message, tools []Tool) (string, error) {
 
 			tool, ok := toolNamesMap[toolName]
 			if !ok {
-				fmt.Printf("Warning: Non-existent tool call (%s) found in LLM response, skipping tool invocation\n", toolName)
+				fmt.Printf("Warning: Non-existent tool call (%s) found in LLM response, returning error to model\n", toolName)
+				toolResponses = append(toolResponses, responses.ResponseInputItemUnionParam{
+					OfFunctionCallOutput: &responses.ResponseInputItemFunctionCallOutputParam{
+						CallID: toolCall.CallID,
+						Output: responses.ResponseInputItemFunctionCallOutputOutputUnionParam{
+							OfString: openai.String("Unknown tool. Available tools: " + strings.Join(getToolNames(tools), ", ")),
+						},
+					},
+				})
 				continue
 			}
-
 
 			var args map[string]any
 			json.Unmarshal([]byte(toolCall.Arguments), &args)
@@ -136,25 +143,28 @@ func Call(messages []Message, tools []Tool) (string, error) {
 					},
 				},
 			})
-			}
 		}
+	}
 
-		if foundToolRequest {
+	if foundToolRequest && len(toolResponses) > 0 {
 		println("found tool request")
-			response, err = client.Responses.New(ctx, responses.ResponseNewParams{
-				Model:              openai.ChatModelGPT5_2,
-				PreviousResponseID: openai.String(response.ID),
-				Input: responses.ResponseNewParamsInputUnion{
-					OfInputItemList: toolResponses,
-				},
-			})
-			if err != nil {
-				return "", fmt.Errorf("There was an issue invoking the post-tool call LLM request: %v", err)
-			}
+		response, err = client.Responses.New(ctx, responses.ResponseNewParams{
+			Model:              openai.ChatModelGPT5_2,
+			PreviousResponseID: openai.String(response.ID),
+			Input: responses.ResponseNewParamsInputUnion{
+				OfInputItemList: toolResponses,
+			},
+		})
+		if err != nil {
+			return "", fmt.Errorf("There was an issue invoking the post-tool call LLM request: %v", err)
 		}
-	println(response.OutputText())
+	}
+
+	for _, item := range response.Output {
+		fmt.Println(item.Type)
+	}
 	print("post tool call response ^^^^")
-		return response.OutputText(), nil
+	return response.OutputText(), nil
 }
 
 func toolsToOpenAITools(tools []Tool) []responses.ToolUnionParam {
@@ -194,4 +204,12 @@ func getToolNamesMap(tools []Tool) (map[string]Tool, error) {
 	}
 
 	return namesMap, nil
+}
+
+func getToolNames(tools []Tool) []string {
+	names := make([]string, 0, len(tools))
+	for _, tool := range tools {
+		names = append(names, tool.Name)
+	}
+	return names
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 	"net/url"
@@ -37,33 +36,33 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 
 func build_llm_tools(ctx context.Context) []llm.Tool {
 	return []llm.Tool{
-		llm.NewTool(
-			"get_all_providers",
-			"Get a list of all providers of order data on the users account.",
-			func(args map[string]any) (string, error) {
-				providers, err := database.GetAllProviders(ctx)
-				if err != nil {
-					return "", err
-				}
+		// llm.NewTool(
+		// 	"get_all_providers",
+		// 	"Get a list of all providers of order data on the users account.",
+		// 	func(args map[string]any) (string, error) {
+		// 		providers, err := database.GetAllProviders(ctx)
+		// 		if err != nil {
+		// 			return "", err
+		// 		}
+		//
+		// 		buf, err := json.Marshal(&providers)
+		// 		return string(buf), err
+		// 	},
+		// ),
 
-				buf, err := json.Marshal(&providers)
-				return string(buf), err
-			},
-		),
-
-		llm.NewTool(
-			"get_all_orders",
-			"Get a list of all orders on the users account.",
-			func(args map[string]any) (string, error) {
-				orders, err := database.GetAllOrder(ctx)
-				if err != nil {
-					return "", err
-				}
-
-				buf, err := json.Marshal(&orders)
-				return string(buf), err
-			},
-		),
+		// llm.NewTool(
+		// 	"get_all_orders",
+		// 	"Get a list of all orders on the users account.",
+		// 	func(args map[string]any) (string, error) {
+		// 		orders, err := database.GetAllOrder(ctx)
+		// 		if err != nil {
+		// 			return "", err
+		// 		}
+		//
+		// 		buf, err := json.Marshal(&orders)
+		// 		return string(buf), err
+		// 	},
+		// ),
 		llm.NewTool(
 			"search_amazon",
 			"takes a search term in plain text and returns structured json of that search result",
@@ -71,23 +70,36 @@ func build_llm_tools(ctx context.Context) []llm.Tool {
 				println("amazon search started")
 				service, err := search.NewServiceFromEnv()
 				if err != nil {
-					return "", errors.New("Amazon search Failed for an unknown reason")
+					return "", err
 				}
 
 				items, err := service.SearchAmazon(context.Background(), url.QueryEscape(args["query"].(string)), 10)
 				if err != nil {
-					return "", errors.New("Amazon search Failed for an unknown reason")
+					return "", err
 				}
 
 				data, err := json.Marshal(items)
 				if err != nil {
-					return "", errors.New("Amazon search Failed for an unknown reason")
+					return "", err
 				}
 
 				return string(data), nil
 			},
 			llm.NewParameter("query", "string", true),
 		),
+		// llm.NewTool(
+		// 	"search_in_provider",
+		// 	"Search a provider catalog by name. Currently supports provider=amazon.",
+		// 	func(args map[string]any) (string, error) {
+		// 		provider := strings.ToLower(strings.TrimSpace(getStringArg(args, "provider")))
+		// 		if provider == "" || provider == "amazon" {
+		// 			return search.SearchAmazonToolCall(args)
+		// 		}
+		// 		return "", errors.New("Unsupported provider")
+		// 	},
+		// 	llm.NewParameter("provider", "string", false),
+		// 	llm.NewParameter("query", "string", true),
+		// ),
 	}
 
 }
