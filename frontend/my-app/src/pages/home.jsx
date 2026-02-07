@@ -11,10 +11,11 @@ function Home({ api }) {
   useEffect(() => {
     api.getRecommendations().
       then(({ data }) => {
+        data = JSON.parse(data).data
         setProducts(data.map((d, i) => ({
           id: i,
-          name: "X",
-          img: api.resolveImagePath(d.image_path),
+          name: d.name,
+          img: api.resolveImagePath2(d.image_path),
           price: 0,
         })))
       })
@@ -76,27 +77,6 @@ function Home({ api }) {
 
         <ChatBox />
 
-        <div className="subBox">
-          <h2>Your Bookmarks</h2>
-          <div className="bookmark-container">
-            {bookmark.length === 0 ? (
-              <p>No items added yet.</p>
-            ) : (
-              <div className="product-slider">
-                {bookmark.map((item) => (
-                  <ProductCard
-                    key={item.id}
-                    name={item.name}
-                    img={item.img}
-                    price={item.price}
-                    isBookmarked={true}
-                    onBookmark={() => removeFromBookmark(item.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       <Sidebar/>

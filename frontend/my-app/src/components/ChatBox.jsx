@@ -95,7 +95,7 @@ export default function ChatBox() {
           onChange={handleInputChange}
         />
         <div className="options">
-          <button className="send"><img src={sendIcon} alt="Send Message Icon" /></button>
+          <button className="send" onClick={fa}><img src={sendIcon} alt="Send Message Icon" /></button>
         </div>
       </form>
 

@@ -1,11 +1,87 @@
+:root {
+    --primary-color: #2563eb;
+    --danger-color: #ef4444;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --bg-card: #ffffff;
+    --radius: 16px;
+}
+
+.productCard {
+    width: 300px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 
+                0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.productCard:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+                0 10px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+.product-img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border-radius: calc(var(--radius) - 4px);
+    background-color: #f9fafb;
+}
+
+.productCard h3 {
+    margin: 16px 0 4px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.025em;
+}
+
+.productCard p {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.add-cart {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.add-cart:hover {
+    filter: brightness(1.1);
+    transform: scale(1.02);
+}
+
+.add-cart:active {
+    transform: scale(0.98);
+}
+
+/* Notification refinement */
 .notification {
     position: fixed;
-    bottom: 20px;
+    bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #333;
+    background-color: rgba(31, 41, 55, 0.95);
+    backdrop-filter: blur(8px);
     color: white;
-    padding: 12px 24px;
-    border-radius: 4px;
+    padding: 14px 28px;
+    border-radius: 99px;
+    font-weight: 500;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
     z-index: 1000;
 }
