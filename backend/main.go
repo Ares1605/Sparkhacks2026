@@ -21,6 +21,11 @@ func main() {
 
 	http.HandleFunc("/provider-details", detials_handler)
 	http.HandleFunc("/resync", resync_handler)
+	http.HandleFunc("/session/history", history_handler)
+	http.HandleFunc("/session/ask", ask_handler)
+	http.HandleFunc("/session/create", create_session_handler)
+
+	http.HandleFunc("/test-connection", test_connection_handler)
 
 	fmt.Println("Server listening on port 8080...")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
