@@ -66,63 +66,80 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func persistScriptOutput(ctx context.Context, output []byte) (importedOrders int, importedItems int, err error) {
-	_ = database.DeleteOrdersFromProvider(ctx, amazonProviderID)
+	parsedOrders, err := parseScriptOutput(output)
+	if err != nil {
+		return 0, 0, err
+	}
 
+	dbOrders, importedItems, err := buildOrders(parsedOrders)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if err := database.ReplaceOrdersForProvider(ctx, amazonProviderID, dbOrders); err != nil {
+		return 0, 0, fmt.Errorf("failed writing orders to database: %w", err)
+	}
+
+	return len(parsedOrders), importedItems, nil
+}
+
+func parseScriptOutput(output []byte) ([]syncScriptOrder, error) {
 	trimmedOutput := bytes.TrimSpace(output)
 	if len(trimmedOutput) == 0 {
-		return 0, 0, nil
+		return nil, fmt.Errorf("script output is empty")
+	}
+	if trimmedOutput[0] != '[' {
+		return nil, fmt.Errorf("script output must be a JSON array; output: %s", trimTo(string(trimmedOutput), 1000))
 	}
 
 	var parsedOrders []syncScriptOrder
 	if err := json.Unmarshal(trimmedOutput, &parsedOrders); err != nil {
-		return 0, 0, fmt.Errorf("script output is not valid JSON array: %w; output=%s", err, trimTo(string(trimmedOutput), 1000))
+		return nil, fmt.Errorf("script output is not valid JSON array: %w; output: %s", err, trimTo(string(trimmedOutput), 1000))
 	}
 
-	for idx, parsed := range parsedOrders {
-		if err := persistOrder(ctx, parsed); err != nil {
-			return importedOrders, importedItems, fmt.Errorf("failed importing order at index %d: %w", idx, err)
-		}
-		importedOrders++
-		importedItems += len(parsed.Items)
-	}
-
-	return importedOrders, importedItems, nil
+	return parsedOrders, nil
 }
 
-func persistOrder(ctx context.Context, parsed syncScriptOrder) error {
-	orderDate := parsed.OrderPlacedDate
-	if split := strings.SplitN(orderDate, "T", 2); len(split) > 0 {
-		orderDate = split[0]
-	}
+func buildOrders(parsedOrders []syncScriptOrder) ([]db.Order, int, error) {
+	orders := make([]db.Order, 0)
+	seenIDs := make(map[int]struct{})
+	importedItems := 0
 
-	for idx, item := range parsed.Items {
-		price, err := parsePrice(item.Price)
-		if err != nil {
-			return fmt.Errorf("order %s item %d has invalid price: %w", parsed.OrderNumber, idx, err)
-		}
-
-		order := db.Order{
-			Id:         buildOrderID(parsed.OrderNumber, idx, item.Title),
-			ProviderId: amazonProviderID,
-			Name:       strings.TrimSpace(item.Title),
-			Price:      price,
-		}
-		if order.Name == "" {
-			order.Name = parsed.OrderNumber
-		}
-		if err := order.OrderDate.From(orderDate); err != nil {
-			return fmt.Errorf("order %s has invalid order date %q: %w", parsed.OrderNumber, parsed.OrderPlacedDate, err)
+	for orderIndex, parsed := range parsedOrders {
+		orderDate := parsed.OrderPlacedDate
+		if split := strings.SplitN(orderDate, "T", 2); len(split) > 0 {
+			orderDate = split[0]
 		}
 
-		if err := database.InsertOrder(ctx, order); err != nil {
-			if strings.Contains(err.Error(), "UNIQUE constraint failed: Orders.Id") {
-				continue
+		for idx, item := range parsed.Items {
+			price, err := parsePrice(item.Price)
+			if err != nil {
+				return nil, 0, fmt.Errorf("order %s item %d has invalid price: %w", parsed.OrderNumber, idx, err)
 			}
-			return err
+
+			order := db.Order{
+				Id:         buildOrderID(parsed.OrderNumber, idx, item.Title),
+				ProviderId: amazonProviderID,
+				Name:       strings.TrimSpace(item.Title),
+				Price:      price,
+			}
+			if order.Name == "" {
+				order.Name = parsed.OrderNumber
+			}
+			if err := order.OrderDate.From(orderDate); err != nil {
+				return nil, 0, fmt.Errorf("order %s has invalid order date %q: %w", parsed.OrderNumber, parsed.OrderPlacedDate, err)
+			}
+			if _, found := seenIDs[order.Id]; found {
+				return nil, 0, fmt.Errorf("duplicate generated order id in script payload at order index %d", orderIndex)
+			}
+			seenIDs[order.Id] = struct{}{}
+
+			orders = append(orders, order)
+			importedItems++
 		}
 	}
 
-	return nil
+	return orders, importedItems, nil
 }
 
 func parsePrice(raw any) (float32, error) {
