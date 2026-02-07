@@ -25,6 +25,10 @@ except ModuleNotFoundError as err:
     )
     sys.exit(2)
 
+# TODO: Don't use AMAZON_USERNAME and AMAZON_PASSWORD env variables, use the username and password
+# passed from the argument.
+# Ex. python sync-amazon-data.py aresstav04@gmail.com password1234
+
 amazon_session = AmazonSession(os.getenv("AMAZON_USERNAME"),
                                os.getenv("AMAZON_PASSWORD"),
                                otp_secret_key=os.getenv("AMAZON_OTP_KEY"))

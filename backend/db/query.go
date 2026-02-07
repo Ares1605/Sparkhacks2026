@@ -43,6 +43,33 @@ var sqlDeleteByProvider = `
 
 var sqlGetProviderId = `SELECT Id FROM Providers WHERE Id = ?`
 
+var sqlGetProviderStatusByID = `
+  SELECT Username, LastSync
+  FROM Providers
+  WHERE Id = ?
+  LIMIT 1
+`
+
+var sqlUpsertProviderSync = `
+  INSERT INTO Providers
+  (Id, Name, LastSync, Username, Password)
+  VALUES (?, ?, ?, ?, COALESCE((SELECT Password FROM Providers WHERE Id = ?), ''))
+  ON CONFLICT(Id) DO UPDATE SET
+    Name = excluded.Name,
+    LastSync = excluded.LastSync,
+    Username = excluded.Username
+`
+
+var sqlUpsertProviderCredentials = `
+  INSERT INTO Providers
+  (Id, Name, LastSync, Username, Password)
+  VALUES (?, ?, NULL, ?, ?)
+  ON CONFLICT(Id) DO UPDATE SET
+    Name = excluded.Name,
+    Username = excluded.Username,
+    Password = excluded.Password
+`
+
 var sqlGetAllProviders = `SELECT * FROM Providers`
 
 var sqlGetAllOrders = `SELECT * FROM Orders`

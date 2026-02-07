@@ -7,14 +7,20 @@ import (
 	"fmt"
 	"hash/crc32"
 	"net/http"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"x/db"
 )
 
-const amazonProviderID = "1"
+const (
+	amazonProviderID    = "1"
+	amazonProviderRowID = 1
+	amazonProviderName  = "amazon"
+)
 
 type syncScriptOrder struct {
 	OrderNumber     string           `json:"order_number"`
@@ -32,6 +38,8 @@ var priceCleaner = regexp.MustCompile(`[^0-9.-]`)
 func resync_handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	// TODO: Pass the username and password as additional arguments
+	// Ex. python sync-amazon-data.py aresstav04@gmail.com password1234
 	cmd := exec.CommandContext(r.Context(), python_executable, "sync-amazon-data.py")
 	cmd.Dir = "scripts"
 
@@ -76,7 +84,24 @@ func persistScriptOutput(ctx context.Context, output []byte) (importedOrders int
 		return 0, 0, err
 	}
 
-	if err := database.ReplaceOrdersForProvider(ctx, amazonProviderID, dbOrders); err != nil {
+	lastSync := time.Now().UTC().Format(time.RFC3339)
+	// TODO: NOt suure how AMAZON_USERNAME get's used here but
+	// AMAZON_USERNAME should be removed as an env variable dependency altogether,
+	// in favor of gettin the username and password from the sqlite DB in the Providers table
+	var username *string
+	if raw := strings.TrimSpace(os.Getenv("AMAZON_USERNAME")); raw != "" {
+		username = &raw
+	}
+
+	if err := database.ReplaceOrdersForProvider(
+		ctx,
+		amazonProviderID,
+		amazonProviderRowID,
+		amazonProviderName,
+		username,
+		lastSync,
+		dbOrders,
+	); err != nil {
 		return 0, 0, fmt.Errorf("failed writing orders to database: %w", err)
 	}
 
