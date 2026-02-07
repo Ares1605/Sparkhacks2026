@@ -91,6 +91,7 @@ func Call(messages []Message, tools []Tool) (string, error) {
 
 	params := responses.ResponseNewParams{
 		Model: openai.ChatModelGPT5_2,
+		Temperature: openai.Float(0),
 		Input: responses.ResponseNewParamsInputUnion{
 			OfInputItemList: openaiMessages,
 		},
