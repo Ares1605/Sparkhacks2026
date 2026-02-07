@@ -1,5 +1,6 @@
 package main
 
-type Details struct {
-	//
+type ProviderDetails struct {
+	Name       string `json:"name"`
+	LastSynced string `json:"last_synced"`
 }

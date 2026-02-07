@@ -13,6 +13,8 @@ var sqlInitTables = `
     Id       INT NOT NULL PRIMARY KEY,
     Name     TEXT
     LastSync TEXT
+    Username TEXT
+    Password TEXT
   );
 `
 
@@ -29,3 +31,5 @@ var sqlDeleteByProvider = `
 `
 
 var sqlGetProviderId = `SELECT Id FROM Providers WHERE Id = ?`
+
+var sqlGetAllProviders = `SELECT * FROM Providers`

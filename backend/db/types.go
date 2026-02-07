@@ -9,7 +9,9 @@ type Order struct {
 }
 
 type Provider struct {
-	Id         int
-	Name       string
-	LastSync  datefmt
+	Id       int
+	Name     string
+	LastSync datefmt
+	Username string
+	Password string
 }
