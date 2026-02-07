@@ -50,6 +50,13 @@ var sqlGetProviderStatusByID = `
   LIMIT 1
 `
 
+var sqlGetProviderCredentialsByID = `
+  SELECT Username, Password
+  FROM Providers
+  WHERE Id = ?
+  LIMIT 1
+`
+
 var sqlUpsertProviderSync = `
   INSERT INTO Providers
   (Id, Name, LastSync, Username, Password)

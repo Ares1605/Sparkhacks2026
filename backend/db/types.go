@@ -63,3 +63,8 @@ type ProviderStatus struct {
 	LastSync *string
 	Username *string
 }
+
+type ProviderCredentials struct {
+	Username string
+	Password string
+}

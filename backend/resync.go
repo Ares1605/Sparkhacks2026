@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"hash/crc32"
 	"net/http"
-	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -38,9 +37,25 @@ var priceCleaner = regexp.MustCompile(`[^0-9.-]`)
 func resync_handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// TODO: Pass the username and password as additional arguments
-	// Ex. python sync-amazon-data.py aresstav04@gmail.com password1234
-	cmd := exec.CommandContext(r.Context(), python_executable, "sync-amazon-data.py")
+	credentials, exists, err := database.GetProviderCredentialsByID(r.Context(), amazonProviderRowID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&ErrorResponse{Err: "Failed to load Amazon credentials from database."})
+		return
+	}
+	if !exists || credentials.Username == "" || strings.TrimSpace(credentials.Password) == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(&ErrorResponse{Err: "Amazon credentials are not set. Call /set-amazon-credentials first."})
+		return
+	}
+
+	cmd := exec.CommandContext(
+		r.Context(),
+		python_executable,
+		"sync-amazon-data.py",
+		credentials.Username,
+		credentials.Password,
+	)
 	cmd.Dir = "scripts"
 
 	var stderr bytes.Buffer
@@ -60,7 +75,7 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	importedOrders, importedItems, err := persistScriptOutput(r.Context(), output)
+	importedOrders, importedItems, err := persistScriptOutput(r.Context(), output, credentials.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(&ErrorResponse{Err: err.Error()})
@@ -73,7 +88,7 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func persistScriptOutput(ctx context.Context, output []byte) (importedOrders int, importedItems int, err error) {
+func persistScriptOutput(ctx context.Context, output []byte, providerUsername string) (importedOrders int, importedItems int, err error) {
 	parsedOrders, err := parseScriptOutput(output)
 	if err != nil {
 		return 0, 0, err
@@ -85,11 +100,9 @@ func persistScriptOutput(ctx context.Context, output []byte) (importedOrders int
 	}
 
 	lastSync := time.Now().UTC().Format(time.RFC3339)
-	// TODO: NOt suure how AMAZON_USERNAME get's used here but
-	// AMAZON_USERNAME should be removed as an env variable dependency altogether,
-	// in favor of gettin the username and password from the sqlite DB in the Providers table
+
 	var username *string
-	if raw := strings.TrimSpace(os.Getenv("AMAZON_USERNAME")); raw != "" {
+	if raw := strings.TrimSpace(providerUsername); raw != "" {
 		username = &raw
 	}
 

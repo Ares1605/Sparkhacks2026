@@ -61,6 +61,24 @@ func (db Database) GetProviderStatusByID(ctx context.Context, providerID int) (P
 	return status, true, nil
 }
 
+func (db Database) GetProviderCredentialsByID(ctx context.Context, providerID int) (ProviderCredentials, bool, error) {
+	row := db.sqldb.QueryRowContext(ctx, sqlGetProviderCredentialsByID, providerID)
+
+	var username sql.NullString
+	var password sql.NullString
+	if err := row.Scan(&username, &password); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ProviderCredentials{}, false, nil
+		}
+		return ProviderCredentials{}, false, err
+	}
+
+	return ProviderCredentials{
+		Username: strings.TrimSpace(username.String),
+		Password: password.String,
+	}, true, nil
+}
+
 func (db Database) UpsertProviderCredentials(
 	ctx context.Context,
 	providerID int,
