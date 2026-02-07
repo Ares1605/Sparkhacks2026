@@ -10,13 +10,12 @@
   display: flex;
   flex-direction: column;
 
-  width: calc(100% - 250px);
-  margin-right: 0;
+  width: 83vw;
+  margin-right: 20px;
 }
 
 .mainBox,
 .subBox {
-  width: 100%;
   border-radius: 16px;
   background: #111827;
   padding: 24px;
