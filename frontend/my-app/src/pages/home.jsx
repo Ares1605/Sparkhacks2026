@@ -66,6 +66,7 @@ function Home() {
     <div className="layout">
       <div className="main">
         <div className="mainBox">
+          <h2>Recommendations</h2>
           <div className="product-slider">
             {products.map((product) => (
               <ProductCard
