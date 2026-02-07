@@ -34,6 +34,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/provider-details", detials_handler)
+	mux.HandleFunc("/set-amazon-credentials", set_amazon_credentials_handler)
 	mux.HandleFunc("/resync", resync_handler)
 	mux.HandleFunc("/session/history", history_handler)
 	mux.HandleFunc("/session/ask", ask_handler)

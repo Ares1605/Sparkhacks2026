@@ -11,10 +11,15 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"x/db"
 )
 
-const amazonProviderID = "1"
+const (
+	amazonProviderID    = "1"
+	amazonProviderRowID = 1
+	amazonProviderName  = "amazon"
+)
 
 type syncScriptOrder struct {
 	OrderNumber     string           `json:"order_number"`
@@ -32,7 +37,25 @@ var priceCleaner = regexp.MustCompile(`[^0-9.-]`)
 func resync_handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	cmd := exec.CommandContext(r.Context(), python_executable, "sync-amazon-data.py")
+	credentials, exists, err := database.GetProviderCredentialsByID(r.Context(), amazonProviderRowID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&ErrorResponse{Err: "Failed to load Amazon credentials from database."})
+		return
+	}
+	if !exists || credentials.Username == "" || strings.TrimSpace(credentials.Password) == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(&ErrorResponse{Err: "Amazon credentials are not set. Call /set-amazon-credentials first."})
+		return
+	}
+
+	cmd := exec.CommandContext(
+		r.Context(),
+		python_executable,
+		"sync-amazon-data.py",
+		credentials.Username,
+		credentials.Password,
+	)
 	cmd.Dir = "scripts"
 
 	var stderr bytes.Buffer
@@ -52,7 +75,7 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	importedOrders, importedItems, err := persistScriptOutput(r.Context(), output)
+	importedOrders, importedItems, err := persistScriptOutput(r.Context(), output, credentials.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(&ErrorResponse{Err: err.Error()})
@@ -65,7 +88,7 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func persistScriptOutput(ctx context.Context, output []byte) (importedOrders int, importedItems int, err error) {
+func persistScriptOutput(ctx context.Context, output []byte, providerUsername string) (importedOrders int, importedItems int, err error) {
 	parsedOrders, err := parseScriptOutput(output)
 	if err != nil {
 		return 0, 0, err
@@ -76,7 +99,22 @@ func persistScriptOutput(ctx context.Context, output []byte) (importedOrders int
 		return 0, 0, err
 	}
 
-	if err := database.ReplaceOrdersForProvider(ctx, amazonProviderID, dbOrders); err != nil {
+	lastSync := time.Now().UTC().Format(time.RFC3339)
+
+	var username *string
+	if raw := strings.TrimSpace(providerUsername); raw != "" {
+		username = &raw
+	}
+
+	if err := database.ReplaceOrdersForProvider(
+		ctx,
+		amazonProviderID,
+		amazonProviderRowID,
+		amazonProviderName,
+		username,
+		lastSync,
+		dbOrders,
+	); err != nil {
 		return 0, 0, fmt.Errorf("failed writing orders to database: %w", err)
 	}
 

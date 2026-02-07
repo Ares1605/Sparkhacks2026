@@ -1,8 +1,8 @@
 package db
 
 import (
-	"time"
 	"encoding/json"
+	"time"
 )
 
 type Order struct {
@@ -13,8 +13,8 @@ type Order struct {
 	OrderDate  datefmt
 }
 
-
 type MessageRole int
+
 const (
 	UserMessage MessageRole = iota
 	ServerMessage
@@ -22,19 +22,19 @@ const (
 
 type ChatMessage struct {
 	Role        MessageRole `json:"role"`
-	Message     string `json:"message"`
-	SessionUuid string `json:"session_uuid"`
-	MessageDate time.Time `json:"message_date"`
+	Message     string      `json:"message"`
+	SessionUuid string      `json:"session_uuid"`
+	MessageDate time.Time   `json:"message_date"`
 }
 type DBChatMessage struct {
-	Id          int `json:"id"`
+	Id int `json:"id"`
 	ChatMessage
 }
 
 func NewChatMessage(role MessageRole, message string, sessionUuid string, messageDate time.Time) ChatMessage {
 	return ChatMessage{
-		Role: role,
-		Message: message,
+		Role:        role,
+		Message:     message,
 		SessionUuid: sessionUuid,
 		MessageDate: messageDate,
 	}
@@ -55,6 +55,16 @@ type Provider struct {
 	Id       int
 	Name     string
 	LastSync datefmt
+	Username string
+	Password string
+}
+
+type ProviderStatus struct {
+	LastSync *string
+	Username *string
+}
+
+type ProviderCredentials struct {
 	Username string
 	Password string
 }
