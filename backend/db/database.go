@@ -66,3 +66,23 @@ func (db Database) InsertOrder(ctx context.Context, o Order) error {
 
 	return nil
 }
+
+func (db Database) GetAllOrder(ctx context.Context) ([]Order, error) {
+	rows, err := db.sqldb.QueryContext(ctx, sqlGetAllOrders)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var orders []Order
+	for rows.Next() {
+		var o Order
+		if err := rows.Scan(&o.Id, &o.ProviderId, &o.Name, &o.Price, &o.OrderDate); err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, o)
+	}
+
+	return orders, nil
+}

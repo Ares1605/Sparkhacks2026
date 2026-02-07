@@ -6,9 +6,12 @@ import (
 )
 
 func detials_handler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	providers, err := database.GetAllProviders(r.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&ErrorResponse{Err: err.Error()})
 		return
 	}
 
@@ -20,9 +23,6 @@ func detials_handler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(&provider_details); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(&OkResponse{Data: provider_details})
 }
