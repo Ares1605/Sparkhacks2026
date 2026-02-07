@@ -1,7 +1,7 @@
 from amazonorders.session import AmazonSession
 from amazonorders.orders import AmazonOrders
 from dotenv import load_dotenv
-import os 
+import os
 import json
 
 load_dotenv()
@@ -18,8 +18,6 @@ orders = amazon_orders.get_order_history(
 )
 
 for order in orders:
-    order_id = order.order_number
-
     serialized = {
         "amazon_discount": order.amazon_discount,
         "order_number": order.order_number,
@@ -42,8 +40,5 @@ for order in orders:
             "link": item.link
         })
 
-    print(serialized)
-
-    filename = os.path.join("history", serialized["order_number"] + ".json")
-    with open(filename, "w") as f:
-        f.write(json.dumps(serialized, indent=2))
+    # Emit newline-delimited JSON so Go can parse each order deterministically.
+    print(json.dumps(serialized), flush=True)

@@ -25,9 +25,7 @@ var sqlInsertOrder = `
 
 var sqlDeleteByProvider = `
   DELETE FROM Orders
-  WHERE ProviderId = (
-    SELECT Id FROM Providers WHERE Id = ?
-  )
+  WHERE ProviderId = ?
 `
 
 var sqlGetProviderId = `SELECT Id FROM Providers WHERE Id = ?`
