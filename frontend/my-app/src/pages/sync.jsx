@@ -1,8 +1,20 @@
 import '../App.css'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import ProviderCard from '../components/ProviderCard';
 
 function Sync() {
+  const providers = ["Amazon", "Provider 2", "Provider 3"];
+  const [expandedProvider, setExpandedProvider] = useState(null);
+  const [lastSyncTimes, setLastSyncTimes] = useState({});
+
+  const handleSync = (providerName) => {
+    setLastSyncTimes({
+      ...lastSyncTimes,
+      [providerName]: new Date()
+    });
+  };
+
   return (
     <div>
         <Link 
@@ -12,10 +24,18 @@ function Sync() {
          textDecoration: 'none' }}> Back to Home
         </Link>
 
-        <h1>Sync Page</h1>
-        <p>This is the sync page.</p>
+        <h1 style={{ marginLeft: '20px' }}>Sync Dashboard</h1>
 
-        <ProviderCard />
+        {providers.map((provider) => (
+          <ProviderCard 
+            key={provider} 
+            providerName={provider}
+            isExpanded={expandedProvider === provider}
+            onToggle={() => setExpandedProvider(expandedProvider === provider ? null : provider)}
+            onSync={() => handleSync(provider)}
+            lastSyncTime={lastSyncTimes[provider]}
+          />
+        ))}
     </div>
   );
 }

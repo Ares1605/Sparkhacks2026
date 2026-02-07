@@ -36,3 +36,18 @@
   background-color: #1f2937;
   color: white;
 }
+
+.productCard {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 16px;
+  width: 250px;
+  background: rgb(84, 103, 126);
+}
+
+.productGrid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-left: 20px;
+}
