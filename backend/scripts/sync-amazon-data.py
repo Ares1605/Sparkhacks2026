@@ -1,6 +1,3 @@
-from amazonorders.session import AmazonSession
-from amazonorders.orders import AmazonOrders
-from amazonorders.exception import AmazonOrdersAuthError, AmazonOrdersAuthRedirectError
 from dotenv import load_dotenv
 import os
 import json
@@ -14,6 +11,19 @@ if os.getenv("AMAZON_MOCK_SYNC") == "1":
     with open(os.path.join(script_directory, "amazon-mock-data.json"), "r") as mock_file:
         print(mock_file.read(), flush=True)
         exit(0)
+
+try:
+    from amazonorders.session import AmazonSession
+    from amazonorders.orders import AmazonOrders
+    from amazonorders.exception import AmazonOrdersAuthError, AmazonOrdersAuthRedirectError
+except ModuleNotFoundError as err:
+    print(
+        "PYTHON_ENV_ERROR: missing dependency "
+        + str(err)
+        + ". Use backend/.venv/bin/python (or install requirements) when running resync.",
+        file=sys.stderr,
+    )
+    sys.exit(2)
 
 amazon_session = AmazonSession(os.getenv("AMAZON_USERNAME"),
                                os.getenv("AMAZON_PASSWORD"),

@@ -1,6 +1,6 @@
 import '../App.css'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import Sidebar from '../components/SideBar';
 import ProviderCard from '../components/ProviderCard';
 
 function Sync() {
@@ -17,25 +17,23 @@ function Sync() {
 
   return (
     <div>
-        <Link 
-        to="/" style={{ color: '#60a5fa',
-         position: 'absolute',
-         top: '10px', left: '10px',
-         textDecoration: 'none' }}> Back to Home
-        </Link>
+        <div className= "layout">
+            <div className= "main">
+                <h1 style={{ marginLeft: '20px' }}>Sync Dashboard</h1>
+                {providers.map((provider) => (
+                <ProviderCard 
+                    key={provider} 
+                    providerName={provider}
+                    isExpanded={expandedProvider === provider}
+                    onToggle={() => setExpandedProvider(expandedProvider === provider ? null : provider)}
+                    onSync={() => handleSync(provider)}
+                    lastSyncTime={lastSyncTimes[provider]}
+                />
+                ))}
+            </div>
 
-        <h1 style={{ marginLeft: '20px' }}>Sync Dashboard</h1>
-
-        {providers.map((provider) => (
-          <ProviderCard 
-            key={provider} 
-            providerName={provider}
-            isExpanded={expandedProvider === provider}
-            onToggle={() => setExpandedProvider(expandedProvider === provider ? null : provider)}
-            onSync={() => handleSync(provider)}
-            lastSyncTime={lastSyncTimes[provider]}
-          />
-        ))}
+            <Sidebar/>
+        </div>
     </div>
   );
 }

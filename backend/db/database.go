@@ -47,8 +47,8 @@ func (db Database) GetProviderId(ctx context.Context, name string) error {
 	return nil
 }
 
-func (db Database) DeleteOrdersFromProvider(ctx context.Context, name string) error {
-	_, err := db.sqldb.ExecContext(ctx, sqlDeleteByProvider)
+func (db Database) DeleteOrdersFromProvider(ctx context.Context, providerID string) error {
+	_, err := db.sqldb.ExecContext(ctx, sqlDeleteByProvider, providerID)
 	if err != nil {
 		return err
 	}
@@ -63,6 +63,39 @@ func (db Database) InsertOrder(ctx context.Context, o Order) error {
 		o.Id, o.ProviderId, o.Name, o.Price, o.OrderDate.String(),
 	)
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db Database) ReplaceOrdersForProvider(ctx context.Context, providerID string, orders []Order) (err error) {
+	tx, err := db.sqldb.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	if _, err = tx.ExecContext(ctx, sqlDeleteByProvider, providerID); err != nil {
+		return err
+	}
+
+	for _, o := range orders {
+		if _, err = tx.ExecContext(
+			ctx,
+			sqlInsertOrder,
+			o.Id, o.ProviderId, o.Name, o.Price, o.OrderDate.String(),
+		); err != nil {
+			return err
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
 		return err
 	}
 
