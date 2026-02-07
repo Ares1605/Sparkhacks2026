@@ -17,6 +17,8 @@ orders = amazon_orders.get_order_history(
     full_details=True,
 )
 
+serialized_orders = []
+
 for order in orders:
     serialized = {
         "amazon_discount": order.amazon_discount,
@@ -40,5 +42,6 @@ for order in orders:
             "link": item.link
         })
 
-    # Emit newline-delimited JSON so Go can parse each order deterministically.
-    print(json.dumps(serialized), flush=True)
+    serialized_orders.append(serialized)
+
+print(json.dumps(serialized_orders), flush=True)
