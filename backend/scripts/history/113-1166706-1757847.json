@@ -1,0 +1,21 @@
+{
+  "amazon_discount": null,
+  "order_number": "113-1166706-1757847",
+  "coupon_savings": null,
+  "free_shipping": null,
+  "gift_card": null,
+  "shipping_total": 6.99,
+  "subtotal": 4.99,
+  "order_placed_date": "2026-02-06",
+  "order_details_link": "https://www.amazon.com/gp/your-account/order-details?orderID=113-1166706-1757847",
+  "items": [
+    {
+      "image_link": "https://m.media-amazon.com/images/I/61O69SPW4sS._SS284_.jpg",
+      "price": 4.99,
+      "quantity": null,
+      "title": "ThreeBulls PWM Fan Hub, PC CPU Cooling 4 PIN/3PIN Power Fan Extension Cable Hub Splitter Adapter Sleeved Case for 12V Desktop Computer Cooler Fans 1 to 5 Way (15.7 Inch)",
+      "condition": null,
+      "link": "https://www.amazon.com/dp/B07M5P7VHG?ref_=ppx_hzod_title_dt_b_fed_asin_title_0_0"
+    }
+  ]
+}

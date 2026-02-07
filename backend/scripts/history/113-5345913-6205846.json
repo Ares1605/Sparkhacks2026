@@ -1,0 +1,21 @@
+{
+  "amazon_discount": null,
+  "order_number": "113-5345913-6205846",
+  "coupon_savings": null,
+  "free_shipping": null,
+  "gift_card": null,
+  "shipping_total": 6.99,
+  "subtotal": 99.99,
+  "order_placed_date": "2026-02-06",
+  "order_details_link": "https://www.amazon.com/gp/your-account/order-details?orderID=113-5345913-6205846",
+  "items": [
+    {
+      "image_link": "https://m.media-amazon.com/images/I/71uyBxzZ3bL._SS284_.jpg",
+      "price": 99.99,
+      "quantity": null,
+      "title": "CORSAIR RM850e ATX 3.1 PCIe 5.1 Ready Fully Modular 850W Power Supply \u2013 12V-2x6 Cable Included, Cybenetics Gold Efficiency, 105\u00b0C-Rated Capacitors, Modern Standby Mode \u2013 Black",
+      "condition": null,
+      "link": "https://www.amazon.com/dp/B0FLG5S4FP?ref_=ppx_hzod_title_dt_b_fed_asin_title_0_0"
+    }
+  ]
+}

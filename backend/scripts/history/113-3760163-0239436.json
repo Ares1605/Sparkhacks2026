@@ -1,0 +1,21 @@
+{
+  "amazon_discount": null,
+  "order_number": "113-3760163-0239436",
+  "coupon_savings": null,
+  "free_shipping": null,
+  "gift_card": null,
+  "shipping_total": 6.99,
+  "subtotal": 72.65,
+  "order_placed_date": "2026-02-06",
+  "order_details_link": "https://www.amazon.com/gp/your-account/order-details?orderID=113-3760163-0239436",
+  "items": [
+    {
+      "image_link": "https://m.media-amazon.com/images/I/61IBd9m-GVL._SS284_.jpg",
+      "price": 72.65,
+      "quantity": null,
+      "title": "Miortior Corner Floor Lamp, 2 Pack LED Corner Lamp with App/Remote/Button Control, Smart RGB Floor Lamp with 16 Million DIY Colors & 68+ Scene, Music Sync for Living Room, Bedroom, Gaming Room",
+      "condition": null,
+      "link": "https://www.amazon.com/dp/B0CZ7KLVPC?ref_=ppx_hzod_title_dt_b_fed_asin_title_0_0"
+    }
+  ]
+}

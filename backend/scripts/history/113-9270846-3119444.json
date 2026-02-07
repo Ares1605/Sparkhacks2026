@@ -1,0 +1,21 @@
+{
+  "amazon_discount": null,
+  "order_number": "113-9270846-3119444",
+  "coupon_savings": null,
+  "free_shipping": null,
+  "gift_card": null,
+  "shipping_total": 6.99,
+  "subtotal": 299.99,
+  "order_placed_date": "2026-02-06",
+  "order_details_link": "https://www.amazon.com/gp/your-account/order-details?orderID=113-9270846-3119444",
+  "items": [
+    {
+      "image_link": "https://m.media-amazon.com/images/I/71OWtcxKgvL._SS284_.jpg",
+      "price": 299.99,
+      "quantity": null,
+      "title": "Samsung 990 PRO SSD 2TB NVMe M.2 PCIe Gen4, M.2 2280 Internal Solid State Hard Drive, Seq. Read Speeds Up to 7,450 MB/s for High End Computing, Gaming, and Heavy Duty Workstations, MZ-V9P2T0B/AM",
+      "condition": null,
+      "link": "https://www.amazon.com/dp/B0BHJJ9Y77?ref_=ppx_hzod_title_dt_b_fed_asin_title_0_0"
+    }
+  ]
+}
