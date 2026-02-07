@@ -16,7 +16,7 @@ export default function ChatBox() {
       const result = await response.json();
       console.log(result);
       if (isMounted) {
-        setSessionUUID(result.session_uuid);
+        setSessionUUID(result.data);
       }
     })();
 
@@ -26,13 +26,7 @@ export default function ChatBox() {
   }, []);
 
 
-  const [chatHistory, setChatHistory] = useState([{
-    "role": "user",
-    "message": "Helloworld",
-  }, {
-      "role": "server",
-      "message": "hii!!!",
-    }]);
+  const [chatHistory, setChatHistory] = useState([]);
   const [input, setInput] = useState("");
   const historyRef = useRef(null);
   const handleInputChange = (e) => {
@@ -70,7 +64,7 @@ export default function ChatBox() {
 
     const result = await response.json();
     console.log(result);
-    const serverResponse = marked.parse(result.response);
+    const serverResponse = marked.parse(result.data);
     setChatHistory(h => [
       ...h,
       { role: "server", message: serverResponse },
