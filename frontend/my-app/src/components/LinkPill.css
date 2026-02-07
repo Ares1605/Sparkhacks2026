@@ -2,6 +2,7 @@
   display: inline-block;
   padding: 8px 20px;
   margin: 5px 0;
+  width: 70px;
   border-radius: 9999px; /* pill shape */
   background-color: #1e3a8a; /* dark blue background */
   color: #60a5fa; /* text color */

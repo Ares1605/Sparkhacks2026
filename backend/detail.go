@@ -5,25 +5,33 @@ import (
 )
 
 func detials_handler(w http.ResponseWriter, r *http.Request) {
-	providers, err := database.GetAllProviders(r.Context())
+	provider, exists, err := database.GetProviderStatusByID(r.Context(), 1)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	type ProviderDetails struct {
-		Name       string `json:"name"`
-		LastSynced string `json:"last_synced"`
+	type AmazonProviderDetails struct {
+		LoggedIn   bool    `json:"logged_in"`
+		LastSynced *string `json:"last_synced"`
+		Username   *string `json:"username"`
 	}
 
-	var details = []ProviderDetails{}
-
-	for _, provider := range providers {
-		details = append(details, ProviderDetails{
-			Name:       provider.Name,
-			LastSynced: provider.LastSync.String(),
-		})
+	type ProviderDetailsResponse struct {
+		Amazon AmazonProviderDetails `json:"amazon"`
 	}
 
-	writeResponse(w, http.StatusOK, details)
+	response := ProviderDetailsResponse{
+		Amazon: AmazonProviderDetails{
+			LoggedIn:   exists,
+			LastSynced: nil,
+			Username:   nil,
+		},
+	}
+	if exists {
+		response.Amazon.LastSynced = provider.LastSync
+		response.Amazon.Username = provider.Username
+	}
+
+	writeResponse(w, http.StatusOK, response)
 }

@@ -35,6 +35,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/provider-details", detials_handler)
+	mux.HandleFunc("/set-amazon-credentials", set_amazon_credentials_handler)
 	mux.HandleFunc("/resync", resync_handler)
 	mux.HandleFunc("/recommendations", recommendations_handler)
 	mux.HandleFunc("/resource/image/{id}", image_resource_handler)
