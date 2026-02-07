@@ -1,0 +1,21 @@
+{
+  "amazon_discount": null,
+  "order_number": "113-7677956-5597848",
+  "coupon_savings": null,
+  "free_shipping": null,
+  "gift_card": null,
+  "shipping_total": 0.0,
+  "subtotal": 22.99,
+  "order_placed_date": "2026-02-02",
+  "order_details_link": "https://www.amazon.com/gp/your-account/order-details?orderID=113-7677956-5597848",
+  "items": [
+    {
+      "image_link": "https://m.media-amazon.com/images/I/81Ol9bpamhL._SS284_.jpg",
+      "price": 22.99,
+      "quantity": null,
+      "title": "Every Man Jack Amber+Sandalwood Hydrating Mens Body Wash for All Skin Types-Cleanse, Nourish, and Hydrate Skin with Naturally Derived Ingredients-Paraben Free, Phthalate Free, Dye Free-24oz(Pack of 2)",
+      "condition": null,
+      "link": "https://www.amazon.com/dp/B09P4J1HBP?ref_=ppx_hzod_title_dt_b_fed_asin_title_0_0"
+    }
+  ]
+}

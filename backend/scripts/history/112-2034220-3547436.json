@@ -1,0 +1,21 @@
+{
+  "amazon_discount": null,
+  "order_number": "112-2034220-3547436",
+  "coupon_savings": null,
+  "free_shipping": null,
+  "gift_card": -0.1,
+  "shipping_total": 0.0,
+  "subtotal": 21.99,
+  "order_placed_date": "2026-01-17",
+  "order_details_link": "https://www.amazon.com/gp/your-account/order-details?orderID=112-2034220-3547436",
+  "items": [
+    {
+      "image_link": "https://m.media-amazon.com/images/I/51YFap26gWL._SS284_.jpg",
+      "price": 21.99,
+      "quantity": null,
+      "title": "51mm Magnetic Dosing Funnel V2, MATOW Stainless Steel Espresso Dosing Ring with 8 Magnets Compatible with 51mm Espresso Portafilter",
+      "condition": null,
+      "link": "https://www.amazon.com/dp/B0CM5XX7JW?ref_=ppx_hzod_title_dt_b_fed_asin_title_0_0"
+    }
+  ]
+}

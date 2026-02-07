@@ -1,0 +1,21 @@
+{
+  "amazon_discount": null,
+  "order_number": "113-8193684-9986656",
+  "coupon_savings": null,
+  "free_shipping": null,
+  "gift_card": -33.06,
+  "shipping_total": 0.0,
+  "subtotal": 29.99,
+  "order_placed_date": "2026-01-16",
+  "order_details_link": "https://www.amazon.com/gp/your-account/order-details?orderID=113-8193684-9986656",
+  "items": [
+    {
+      "image_link": "https://m.media-amazon.com/images/I/51BFA5e14kL._SS284_.jpg",
+      "price": 29.99,
+      "quantity": null,
+      "title": "HUGH, by IMS 51 mm Precision Filter Basket Competition Series Coffee Filter Basket Stainless Steel Portafilter Basket, 14-18 grams compatible with Leverpresso H26",
+      "condition": null,
+      "link": "https://www.amazon.com/dp/B0B1Q81CN9?ref_=ppx_hzod_title_dt_b_fed_asin_title_0_0"
+    }
+  ]
+}

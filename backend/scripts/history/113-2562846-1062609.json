@@ -1,0 +1,21 @@
+{
+  "amazon_discount": null,
+  "order_number": "113-2562846-1062609",
+  "coupon_savings": null,
+  "free_shipping": null,
+  "gift_card": null,
+  "shipping_total": null,
+  "subtotal": null,
+  "order_placed_date": "2026-01-10",
+  "order_details_link": "https://www.amazon.com/gp/your-account/order-details?orderID=113-2562846-1062609",
+  "items": [
+    {
+      "image_link": "https://m.media-amazon.com/images/I/81kMAvDJzyL._SS284_.jpg",
+      "price": 10.0,
+      "quantity": null,
+      "title": "VALORANT $10 Gift Card - PC [Online Game Code]",
+      "condition": null,
+      "link": "https://www.amazon.com/dp/B088GH4X9W?ref_=ppx_hzod_title_dt_b_fed_asin_title_0_0"
+    }
+  ]
+}

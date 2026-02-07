@@ -1,0 +1,21 @@
+{
+  "amazon_discount": null,
+  "order_number": "112-0140068-4517035",
+  "coupon_savings": null,
+  "free_shipping": -2.99,
+  "gift_card": null,
+  "shipping_total": 2.99,
+  "subtotal": 25.99,
+  "order_placed_date": "2026-01-18",
+  "order_details_link": "https://www.amazon.com/gp/your-account/order-details?orderID=112-0140068-4517035",
+  "items": [
+    {
+      "image_link": "https://m.media-amazon.com/images/I/41m6lmqy6LL._SS284_.jpg",
+      "price": 25.99,
+      "quantity": null,
+      "title": "51mm Bottomless Portafilter 2 Ears for Delonghi ECP3420/BCO430/EC260 | Stainless Steel Filter Basket and ABS Handle",
+      "condition": null,
+      "link": "https://www.amazon.com/dp/B09W5QY63R?ref_=ppx_hzod_title_dt_b_fed_asin_title_0_0"
+    }
+  ]
+}
