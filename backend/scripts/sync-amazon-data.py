@@ -1,5 +1,6 @@
 from amazonorders.session import AmazonSession
 from amazonorders.orders import AmazonOrders
+from amazonorders.exception import AmazonOrdersAuthError, AmazonOrdersAuthRedirectError
 from dotenv import load_dotenv
 import os
 import json
@@ -18,13 +19,29 @@ if os.getenv("AMAZON_MOCK_SYNC") == "1":
 amazon_session = AmazonSession(os.getenv("AMAZON_USERNAME"),
                                os.getenv("AMAZON_PASSWORD"),
                                otp_secret_key=os.getenv("AMAZON_OTP_KEY"))
+
 amazon_session.login()
 
 amazon_orders = AmazonOrders(amazon_session)
 
-orders = amazon_orders.get_order_history(
-    full_details=True,
-)
+try:
+    orders = amazon_orders.get_order_history(
+        full_details=True,
+    )
+except AmazonOrdersAuthRedirectError:
+    # Persisted cookies can expire; retry once with a fresh login.
+    amazon_session.login()
+    orders = amazon_orders.get_order_history(
+        full_details=True,
+    )
+except AmazonOrdersAuthError as err:
+    print(
+        "AMAZON_AUTH_ERROR: "
+        + str(err)
+        + " If this is a JavaScript challenge, solve captcha in a browser and retry.",
+        file=sys.stderr,
+    )
+    sys.exit(2)
 
 serialized_orders = []
 
