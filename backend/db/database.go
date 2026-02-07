@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"time"
 )
 
 type Database struct {
@@ -85,4 +87,80 @@ func (db Database) GetAllOrder(ctx context.Context) ([]Order, error) {
 	}
 
 	return orders, nil
+}
+
+func (db Database) InsertChatSession(ctx context.Context, sessionUuid string) error {
+	_, err := db.sqldb.ExecContext(
+		ctx,
+		sqlInsertChatSession,
+		sessionUuid,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db Database) InsertChatMessage(ctx context.Context, chatMessage ChatMessage) error {
+	var roleStr string
+	switch chatMessage.Role {
+	case UserMessage:
+		roleStr = "user"
+	case ServerMessage:
+		roleStr = "server"
+	default:
+		return fmt.Errorf("unknown role ID (%d)", chatMessage.Role)
+	}
+
+	_, err := db.sqldb.ExecContext(
+		ctx,
+		sqlInsertChatMessage,
+		chatMessage.Message,
+		roleStr,
+		chatMessage.SessionUuid,
+		chatMessage.MessageDate.Format(time.RFC3339Nano),
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db Database) GetChatHistory(ctx context.Context, sessionUuid string) ([]DBChatMessage, error) {
+	rows, err := db.sqldb.QueryContext(ctx,
+		"SELECT Id, Message, Role, MessageDate FROM ChatMessages WHERE SessionUuid=?",
+		sessionUuid,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	chatHistory := make([]DBChatMessage, 0)
+	for rows.Next() {
+		var m DBChatMessage
+		var roleStr string
+		var dateStr string
+		if err := rows.Scan(&m.Id, &m.Message, &roleStr, &dateStr); err != nil {
+			return nil, err
+		}
+		switch roleStr {
+		case "user":
+			m.Role = UserMessage
+		case "server":
+			m.Role = ServerMessage
+		default:
+			return nil, fmt.Errorf("unknown role %q", roleStr)
+		}
+		m.MessageDate, err = time.Parse(time.RFC3339Nano, dateStr)
+		if err != nil {
+			return nil, err
+		}
+		chatHistory = append(chatHistory, m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return chatHistory, nil
 }

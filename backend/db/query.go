@@ -16,6 +16,19 @@ var sqlInitTables = `
     Username TEXT,
     Password TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS ChatSessions (
+    Id       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    Uuid     TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS ChatMessages (
+    Id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    SessionUuid     TEXT NOT NULL,
+    Message         TEXT NOT NULL,
+    Role            TEXT NOT NULL,
+    MessageDate     TEXT
+  );
 `
 
 var sqlInsertOrder = `
@@ -33,3 +46,13 @@ var sqlGetProviderId = `SELECT Id FROM Providers WHERE Id = ?`
 var sqlGetAllProviders = `SELECT * FROM Providers`
 
 var sqlGetAllOrders = `SELECT * FROM Orders`
+
+var sqlInsertChatSession = `
+	INSERT INTO ChatSessions
+	(Uuid) VALUES (?)
+`
+
+var sqlInsertChatMessage = `
+  INSERT INTO ChatMessages
+  (SessionUuid, Message, Role, MessageDate) VALUES (?, ?, ?, ?)
+`
