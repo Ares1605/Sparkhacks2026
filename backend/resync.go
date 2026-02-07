@@ -30,8 +30,6 @@ type syncScriptItem struct {
 var priceCleaner = regexp.MustCompile(`[^0-9.-]`)
 
 func resync_handler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	cmd := exec.CommandContext(r.Context(), python_executable, "sync-amazon-data.py")
 	cmd.Dir = "scripts"
 
@@ -39,7 +37,6 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 	cmd.Stderr = &stderr
 	output, err := cmd.Output()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		msg := "Resync failed"
 		trimmed := strings.TrimSpace(stderr.String())
 		if trimmed == "" {
@@ -48,21 +45,18 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 		if trimmed != "" {
 			msg = msg + ": " + trimTo(trimmed, 1000)
 		}
-		json.NewEncoder(w).Encode(&ErrorResponse{Err: msg})
+
+		writeError(w, http.StatusInternalServerError, msg)
 		return
 	}
 
 	importedOrders, importedItems, err := persistScriptOutput(r.Context(), output)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&ErrorResponse{Err: err.Error()})
+		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&OkResponse{
-		Data: fmt.Sprintf("Resync completed. Imported %d orders and %d items.", importedOrders, importedItems),
-	})
+	writeResponse(w, http.StatusOK, fmt.Sprintf("Resync completed. Imported %d orders and %d items.", importedOrders, importedItems))
 }
 
 func persistScriptOutput(ctx context.Context, output []byte) (importedOrders int, importedItems int, err error) {
