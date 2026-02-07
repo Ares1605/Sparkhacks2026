@@ -50,22 +50,13 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func findSyncScript() (string, string, error) {
-	candidates := []string{
-		filepath.Join("scripts", "sync-amazon-data.py"),
-		filepath.Join("backend", "scripts", "sync-amazon-data.py"),
-	}
+	candidate := filepath.Join("scripts", "sync-amazon-data.py")
 
-	for _, candidate := range candidates {
-		if _, err := os.Stat(candidate); err == nil {
-			absPath, err := filepath.Abs(candidate)
-			if err != nil {
-				return "", "", fmt.Errorf("unable to resolve sync script path: %w", err)
-			}
-			return absPath, filepath.Dir(absPath), nil
-		}
+	absPath, err := filepath.Abs(candidate)
+	if err != nil {
+		return "", "", fmt.Errorf("unable to resolve sync script path: %w", err)
 	}
-
-	return "", "", fmt.Errorf("sync script not found; expected scripts/sync-amazon-data.py")
+	return absPath, filepath.Dir(absPath), nil
 }
 
 func writeJSON(w http.ResponseWriter, status int, msg string) {
@@ -79,4 +70,3 @@ func trimOutput(s string, max int) string {
 	}
 	return s[:max] + "..."
 }
-

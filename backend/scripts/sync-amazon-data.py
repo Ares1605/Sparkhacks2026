@@ -7,7 +7,8 @@ import json
 load_dotenv()
 
 amazon_session = AmazonSession(os.getenv("AMAZON_USERNAME"),
-                               os.getenv("AMAZON_PASSWORD"))
+                               os.getenv("AMAZON_PASSWORD"),
+                               otp_secret_key=os.getenv("AMAZON_OTP_KEY"))
 amazon_session.login()
 
 amazon_orders = AmazonOrders(amazon_session)
