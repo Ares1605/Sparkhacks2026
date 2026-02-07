@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -36,11 +35,16 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 	cmd := exec.CommandContext(r.Context(), python_executable, "sync-amazon-data.py")
 	cmd.Dir = "scripts"
 
-	output, err := cmd.CombinedOutput()
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	output, err := cmd.Output()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		msg := "Resync failed"
-		trimmed := strings.TrimSpace(string(output))
+		trimmed := strings.TrimSpace(stderr.String())
+		if trimmed == "" {
+			trimmed = strings.TrimSpace(string(output))
+		}
 		if trimmed != "" {
 			msg = msg + ": " + trimTo(trimmed, 1000)
 		}
@@ -62,71 +66,80 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func persistScriptOutput(ctx context.Context, output []byte) (importedOrders int, importedItems int, err error) {
-	_ = database.DeleteOrdersFromProvider(ctx, amazonProviderID)
-
-	scanner := bufio.NewScanner(bytes.NewReader(output))
-	scanner.Buffer(make([]byte, 64*1024), 10*1024*1024)
-	lineNo := 0
-	for scanner.Scan() {
-		lineNo++
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-
-		var parsed syncScriptOrder
-		if err := json.Unmarshal([]byte(line), &parsed); err != nil {
-			return importedOrders, importedItems, fmt.Errorf("script output line %d is not valid JSON: %w", lineNo, err)
-		}
-
-		if err := persistOrder(ctx, parsed); err != nil {
-			return importedOrders, importedItems, fmt.Errorf("failed importing order on line %d: %w", lineNo, err)
-		}
-
-		importedOrders++
-		importedItems += len(parsed.Items)
-	}
-	if err := scanner.Err(); err != nil {
-		return importedOrders, importedItems, fmt.Errorf("failed reading script output: %w", err)
+	parsedOrders, err := parseScriptOutput(output)
+	if err != nil {
+		return 0, 0, err
 	}
 
-	return importedOrders, importedItems, nil
+	dbOrders, importedItems, err := buildOrders(parsedOrders)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if err := database.ReplaceOrdersForProvider(ctx, amazonProviderID, dbOrders); err != nil {
+		return 0, 0, fmt.Errorf("failed writing orders to database: %w", err)
+	}
+
+	return len(parsedOrders), importedItems, nil
 }
 
-func persistOrder(ctx context.Context, parsed syncScriptOrder) error {
-	orderDate := parsed.OrderPlacedDate
-	if split := strings.SplitN(orderDate, "T", 2); len(split) > 0 {
-		orderDate = split[0]
+func parseScriptOutput(output []byte) ([]syncScriptOrder, error) {
+	trimmedOutput := bytes.TrimSpace(output)
+	if len(trimmedOutput) == 0 {
+		return nil, fmt.Errorf("script output is empty")
+	}
+	if trimmedOutput[0] != '[' {
+		return nil, fmt.Errorf("script output must be a JSON array; output: %s", trimTo(string(trimmedOutput), 1000))
 	}
 
-	for idx, item := range parsed.Items {
-		price, err := parsePrice(item.Price)
-		if err != nil {
-			return fmt.Errorf("order %s item %d has invalid price: %w", parsed.OrderNumber, idx, err)
+	var parsedOrders []syncScriptOrder
+	if err := json.Unmarshal(trimmedOutput, &parsedOrders); err != nil {
+		return nil, fmt.Errorf("script output is not valid JSON array: %w; output: %s", err, trimTo(string(trimmedOutput), 1000))
+	}
+
+	return parsedOrders, nil
+}
+
+func buildOrders(parsedOrders []syncScriptOrder) ([]db.Order, int, error) {
+	orders := make([]db.Order, 0)
+	seenIDs := make(map[int]struct{})
+	importedItems := 0
+
+	for orderIndex, parsed := range parsedOrders {
+		orderDate := parsed.OrderPlacedDate
+		if split := strings.SplitN(orderDate, "T", 2); len(split) > 0 {
+			orderDate = split[0]
 		}
 
-		order := db.Order{
-			Id:         buildOrderID(parsed.OrderNumber, idx, item.Title),
-			ProviderId: amazonProviderID,
-			Name:       strings.TrimSpace(item.Title),
-			Price:      price,
-		}
-		if order.Name == "" {
-			order.Name = parsed.OrderNumber
-		}
-		if err := order.OrderDate.From(orderDate); err != nil {
-			return fmt.Errorf("order %s has invalid order date %q: %w", parsed.OrderNumber, parsed.OrderPlacedDate, err)
-		}
-
-		if err := database.InsertOrder(ctx, order); err != nil {
-			if strings.Contains(err.Error(), "UNIQUE constraint failed: Orders.Id") {
-				continue
+		for idx, item := range parsed.Items {
+			price, err := parsePrice(item.Price)
+			if err != nil {
+				return nil, 0, fmt.Errorf("order %s item %d has invalid price: %w", parsed.OrderNumber, idx, err)
 			}
-			return err
+
+			order := db.Order{
+				Id:         buildOrderID(parsed.OrderNumber, idx, item.Title),
+				ProviderId: amazonProviderID,
+				Name:       strings.TrimSpace(item.Title),
+				Price:      price,
+			}
+			if order.Name == "" {
+				order.Name = parsed.OrderNumber
+			}
+			if err := order.OrderDate.From(orderDate); err != nil {
+				return nil, 0, fmt.Errorf("order %s has invalid order date %q: %w", parsed.OrderNumber, parsed.OrderPlacedDate, err)
+			}
+			if _, found := seenIDs[order.Id]; found {
+				return nil, 0, fmt.Errorf("duplicate generated order id in script payload at order index %d", orderIndex)
+			}
+			seenIDs[order.Id] = struct{}{}
+
+			orders = append(orders, order)
+			importedItems++
 		}
 	}
 
-	return nil
+	return orders, importedItems, nil
 }
 
 func parsePrice(raw any) (float32, error) {
