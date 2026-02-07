@@ -1,24 +1,50 @@
 from amazonorders.session import AmazonSession
 from amazonorders.orders import AmazonOrders
+from amazonorders.exception import AmazonOrdersAuthError, AmazonOrdersAuthRedirectError
 from dotenv import load_dotenv
-import os 
+import os
 import json
+import sys
 
 load_dotenv()
 
+# We would like to mock the Amazon data, for testing purposes
+if os.getenv("AMAZON_MOCK_SYNC") == "1":
+    script_directory = os.path.dirname(os.path.abspath(sys.argv[0]))
+    with open(os.path.join(script_directory, "amazon-mock-data.json"), "r") as mock_file:
+        print(mock_file.read(), flush=True)
+        exit(0)
+
 amazon_session = AmazonSession(os.getenv("AMAZON_USERNAME"),
-                               os.getenv("AMAZON_PASSWORD"))
+                               os.getenv("AMAZON_PASSWORD"),
+                               otp_secret_key=os.getenv("AMAZON_OTP_KEY"))
+
 amazon_session.login()
 
 amazon_orders = AmazonOrders(amazon_session)
 
-orders = amazon_orders.get_order_history(
-    full_details=True,
-)
+try:
+    orders = amazon_orders.get_order_history(
+        full_details=True,
+    )
+except AmazonOrdersAuthRedirectError:
+    # Persisted cookies can expire; retry once with a fresh login.
+    amazon_session.login()
+    orders = amazon_orders.get_order_history(
+        full_details=True,
+    )
+except AmazonOrdersAuthError as err:
+    print(
+        "AMAZON_AUTH_ERROR: "
+        + str(err)
+        + " If this is a JavaScript challenge, solve captcha in a browser and retry.",
+        file=sys.stderr,
+    )
+    sys.exit(2)
+
+serialized_orders = []
 
 for order in orders:
-    order_id = order.order_number
-
     serialized = {
         "amazon_discount": order.amazon_discount,
         "order_number": order.order_number,
@@ -41,8 +67,6 @@ for order in orders:
             "link": item.link
         })
 
-    print(serialized)
+    serialized_orders.append(serialized)
 
-    filename = os.path.join("history", serialized["order_number"] + ".json")
-    with open(filename, "w") as f:
-        f.write(json.dumps(serialized, indent=2))
+print(json.dumps(serialized_orders), flush=True)

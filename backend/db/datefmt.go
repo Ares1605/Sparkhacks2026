@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -11,26 +12,34 @@ type datefmt struct {
 }
 
 func (d datefmt) String() string {
-	return time.Time(d.Time).Format(`"2006-01-02"`)
+	return time.Time(d.Time).Format(time.DateOnly)
 }
 
 func (d *datefmt) From(data string) error {
-	var err error
-
-	d.Time, err = time.Parse("2006-01-02", data)
-	if err != nil {
-		return errors.New("Invalid date format")
+	formats := []string{
+		time.DateOnly,
+		time.DateTime,
 	}
 
-	return nil
+	for _, f := range formats {
+		parsed, err := time.Parse(f, data)
+		if err != nil {
+			continue
+		}
+		d.Time = parsed
+		return nil
+	}
+
+	return errors.New("Invalid date format")
 }
 
 func (d *datefmt) UnmarshalJSON(data []byte) error {
-	return d.From(string(data))
+	s, _ := strconv.Unquote(string(data))
+	return d.From(s)
 }
 
 func (d datefmt) MarshalJSON() ([]byte, error) {
-	return []byte(d.String()), nil
+	return []byte(strconv.Quote(d.String())), nil
 }
 
 func (y *datefmt) Scan(value any) error {
