@@ -1,18 +1,24 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
 func detials_handler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	provider, exists, err := database.GetProviderStatusByID(r.Context(), 1)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&ErrorResponse{Err: err.Error()})
+		writeError(w, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	type AmazonProviderDetails struct {
+		LoggedIn   bool    `json:"logged_in"`
+		LastSynced *string `json:"last_synced"`
+		Username   *string `json:"username"`
+	}
+
+	type ProviderDetailsResponse struct {
+		Amazon AmazonProviderDetails `json:"amazon"`
 	}
 
 	response := ProviderDetailsResponse{
@@ -27,6 +33,5 @@ func detials_handler(w http.ResponseWriter, r *http.Request) {
 		response.Amazon.Username = provider.Username
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&response)
+	writeResponse(w, http.StatusOK, response)
 }

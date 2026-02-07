@@ -35,17 +35,14 @@ type syncScriptItem struct {
 var priceCleaner = regexp.MustCompile(`[^0-9.-]`)
 
 func resync_handler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	credentials, exists, err := database.GetProviderCredentialsByID(r.Context(), amazonProviderRowID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&ErrorResponse{Err: "Failed to load Amazon credentials from database."})
+		writeError(w, http.StatusInternalServerError, "Failed to load Amazon credentials from database.")
 		return
 	}
+
 	if !exists || credentials.Username == "" || strings.TrimSpace(credentials.Password) == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&ErrorResponse{Err: "Amazon credentials are not set. Call /set-amazon-credentials first."})
+		writeError(w, http.StatusBadRequest, "Amazon credentials are not set. Call /set-amazon-credentials first.")
 		return
 	}
 
@@ -62,7 +59,6 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 	cmd.Stderr = &stderr
 	output, err := cmd.Output()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		msg := "Resync failed"
 		trimmed := strings.TrimSpace(stderr.String())
 		if trimmed == "" {
@@ -71,21 +67,18 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 		if trimmed != "" {
 			msg = msg + ": " + trimTo(trimmed, 1000)
 		}
-		json.NewEncoder(w).Encode(&ErrorResponse{Err: msg})
+
+		writeError(w, http.StatusInternalServerError, msg)
 		return
 	}
 
 	importedOrders, importedItems, err := persistScriptOutput(r.Context(), output, credentials.Username)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&ErrorResponse{Err: err.Error()})
+		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&OkResponse{
-		Data: fmt.Sprintf("Resync completed. Imported %d orders and %d items.", importedOrders, importedItems),
-	})
+	writeResponse(w, http.StatusOK, fmt.Sprintf("Resync completed. Imported %d orders and %d items.", importedOrders, importedItems))
 }
 
 func persistScriptOutput(ctx context.Context, output []byte, providerUsername string) (importedOrders int, importedItems int, err error) {
