@@ -25,9 +25,25 @@ except ModuleNotFoundError as err:
     )
     sys.exit(2)
 
-amazon_session = AmazonSession(os.getenv("AMAZON_USERNAME"),
-                               os.getenv("AMAZON_PASSWORD"),
-                               otp_secret_key=os.getenv("AMAZON_OTP_KEY"))
+if len(sys.argv) < 3:
+    print(
+        "USAGE_ERROR: expected username and password args. "
+        "Example: python sync-amazon-data.py <username> <password>",
+        file=sys.stderr,
+    )
+    sys.exit(2)
+
+username = sys.argv[1].strip()
+password = sys.argv[2]
+if username == "" or password.strip() == "":
+    print("USAGE_ERROR: username and password must be non-empty.", file=sys.stderr)
+    sys.exit(2)
+
+amazon_session = AmazonSession(
+    username,
+    password,
+    otp_secret_key=os.getenv("AMAZON_OTP_SECRET_KEY") or os.getenv("AMAZON_OTP_KEY"),
+)
 
 amazon_session.login()
 

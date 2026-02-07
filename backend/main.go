@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,16 +24,21 @@ func corsMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
-	process_args()
-
 	var err error
+	if python_executable, err = find_python(); err != nil {
+		log.Fatal("Failed to find python executable")
+	}
+
 	if database, err = db.Open("primary.db"); err != nil {
 		panic(err)
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/provider-details", detials_handler)
+	mux.HandleFunc("/set-amazon-credentials", set_amazon_credentials_handler)
 	mux.HandleFunc("/resync", resync_handler)
+	mux.HandleFunc("/recommendations", recommendations_handler)
+	mux.HandleFunc("/resource/image/{id}", image_resource_handler)
 	mux.HandleFunc("/session/history", history_handler)
 	mux.HandleFunc("/session/ask", ask_handler)
 	mux.HandleFunc("/session/create", create_session_handler)
@@ -44,11 +48,4 @@ func main() {
 	if err := http.ListenAndServe(":8080", corsMiddleware(mux)); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func process_args() {
-	python := flag.String("python", "python3", "Python executable")
-	flag.Parse()
-
-	python_executable = *python
 }

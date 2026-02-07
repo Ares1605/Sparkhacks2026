@@ -4,39 +4,21 @@ import ProductCard from "../components/ProductCard"
 import Sidebar from '../components/SideBar';
 import ChatBox from '../components/ChatBox';
 
-function Home() {
-  const products = [
-    {
-      id: 1,
-      name: "IPhone 16 Pro",
-      img: "https://via.placeholder.com/300x200?text=iPhone",
-      price: "$899.99"
-    },
-    {
-      id: 2,
-      name: "Red Bull",
-      img: "https://via.placeholder.com/300x200?text=iPhone",
-      price: "$2.99"
-    },
-    {
-      id: 3,
-      name: "Lamp",
-      img: "https://via.placeholder.com/300x200?text=iPhone",
-      price: "$44.99"
-    },
-    {
-      id: 4,
-      name: "Bag of Chips",
-      img: "https://via.placeholder.com/300x200?text=iPhone",
-      price: "$4.99"
-    },
-    {
-      id: 5,
-      name: "A Chair",
-      img: "https://via.placeholder.com/300x200?text=iPhone",
-      price: "$149.99"
-    }
-  ]
+
+function Home({ api }) {
+  const [products, setProducts] = useState([])
+
+  useEffect(() => {
+    api.getRecommendations().
+      then(({ data }) => {
+        setProducts(data.map((d, i) => ({
+          id: i,
+          name: "X",
+          img: api.resolveImagePath(d.image_path),
+          price: 0,
+        })))
+      })
+  }, [api])
 
   const getInitialBookmarks = () => {
     const stored = localStorage.getItem("bookmark");
@@ -92,7 +74,7 @@ function Home() {
           </div>
         </div>
 
-        <ChatBox/>
+        <ChatBox />
 
         <div className="subBox">
           <h2>Your Bookmarks</h2>

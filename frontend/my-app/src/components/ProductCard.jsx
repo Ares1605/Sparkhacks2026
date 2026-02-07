@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import './ProductCard.css'
 
 export default function ProductCard({ name, img, price, isBookmarked, onBookmark }) {
