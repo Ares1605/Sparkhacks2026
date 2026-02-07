@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import '../App.css'
 import ProductCard from "../components/ProductCard"
 import Sidebar from '../components/SideBar';
+import ChatBox from '../components/ChatBox';
 
 function Home() {
-  
   const products = [
     {
       id: 1,
@@ -79,6 +79,8 @@ function Home() {
             ))}
           </div>
         </div>
+
+        <ChatBox/>
 
         <div className="subBox">
           <h2>Your Bookmarks</h2>
