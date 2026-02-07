@@ -4,7 +4,7 @@ import '../App.css'
 export default function Sidebar() {
     return (
       <div className="sidebar">
-        <h2>PreCog</h2>
+        <h2 style={{ textAlign: "center", width: "100%"}}>PreCog</h2>
         <p>Navigation</p>
         <Link to="/" style={{ color: '#60a5fa', textDecoration: 'none' }}> Home </Link>
         <br/>
