@@ -151,14 +151,12 @@ func buildOrders(parsedOrders []syncScriptOrder) ([]db.Order, int, error) {
 			order := db.Order{
 				Id:         buildOrderID(parsed.OrderNumber, idx, item.Title),
 				ProviderId: amazonProviderID,
+				OrderDate: orderDate,
 				Name:       strings.TrimSpace(item.Title),
 				Price:      price,
 			}
 			if order.Name == "" {
 				order.Name = parsed.OrderNumber
-			}
-			if err := order.OrderDate.From(orderDate); err != nil {
-				return nil, 0, fmt.Errorf("order %s has invalid order date %q: %w", parsed.OrderNumber, parsed.OrderPlacedDate, err)
 			}
 			if _, found := seenIDs[order.Id]; found {
 				return nil, 0, fmt.Errorf("duplicate generated order id in script payload at order index %d", orderIndex)

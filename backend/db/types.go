@@ -10,7 +10,7 @@ type Order struct {
 	ProviderId string
 	Name       string
 	Price      float32
-	OrderDate  datefmt
+	OrderDate  string
 }
 
 type MessageRole int
@@ -54,7 +54,7 @@ func (c ChatMessage) MarshalJSON() ([]byte, error) {
 type Provider struct {
 	Id       int
 	Name     string
-	LastSync datefmt
+	LastSync string
 	Username string
 	Password string
 }

@@ -125,7 +125,7 @@ func (db Database) ReplaceOrdersForProvider(
 		if _, err = tx.ExecContext(
 			ctx,
 			sqlInsertOrder,
-			o.Id, o.ProviderId, o.Name, o.Price, o.OrderDate.String(),
+			o.Id, o.ProviderId, o.Name, o.Price, o.OrderDate,
 		); err != nil {
 			return err
 		}

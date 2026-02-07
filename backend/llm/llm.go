@@ -103,6 +103,8 @@ func Call(messages []Message, tools []Tool) (string, error) {
 	toolResponses := make([]responses.ResponseInputItemUnionParam, 0)
 	foundToolRequest := false
 	// Check for function calls in the response output
+	println(response.Output)
+	println("^^^^^^^")
 	for _, item := range response.Output {
 		if item.Type == "function_call" {
 			foundToolRequest = true
@@ -138,6 +140,7 @@ func Call(messages []Message, tools []Tool) (string, error) {
 		}
 
 		if foundToolRequest {
+		println("found tool request")
 			response, err = client.Responses.New(ctx, responses.ResponseNewParams{
 				Model:              openai.ChatModelGPT5_2,
 				PreviousResponseID: openai.String(response.ID),
@@ -149,7 +152,8 @@ func Call(messages []Message, tools []Tool) (string, error) {
 				return "", fmt.Errorf("There was an issue invoking the post-tool call LLM request: %v", err)
 			}
 		}
-
+	println(response.OutputText())
+	print("post tool call response ^^^^")
 		return response.OutputText(), nil
 }
 

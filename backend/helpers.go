@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"net/url"
 	"x/llm"
+	"x/search"
 )
 
 func writeResponse(w http.ResponseWriter, status int, v any) {
@@ -61,5 +64,30 @@ func build_llm_tools(ctx context.Context) []llm.Tool {
 				return string(buf), err
 			},
 		),
+		llm.NewTool(
+			"search_amazon",
+			"takes a search term in plain text and returns structured json of that search result",
+			func(args map[string]any) (string, error) {
+				println("amazon search started")
+				service, err := search.NewServiceFromEnv()
+				if err != nil {
+					return "", errors.New("Amazon search Failed for an unknown reason")
+				}
+
+				items, err := service.SearchAmazon(context.Background(), url.QueryEscape(args["query"].(string)), 10)
+				if err != nil {
+					return "", errors.New("Amazon search Failed for an unknown reason")
+				}
+
+				data, err := json.Marshal(items)
+				if err != nil {
+					return "", errors.New("Amazon search Failed for an unknown reason")
+				}
+
+				return string(data), nil
+			},
+			llm.NewParameter("query", "string", true),
+		),
 	}
+
 }
