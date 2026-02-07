@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -33,11 +34,12 @@ func (d *datefmt) From(data string) error {
 }
 
 func (d *datefmt) UnmarshalJSON(data []byte) error {
-	return d.From(string(data))
+	s, _ := strconv.Unquote(string(data))
+	return d.From(s)
 }
 
 func (d datefmt) MarshalJSON() ([]byte, error) {
-	return []byte(d.String()), nil
+	return []byte(strconv.Quote(d.String())), nil
 }
 
 func (y *datefmt) Scan(value any) error {
