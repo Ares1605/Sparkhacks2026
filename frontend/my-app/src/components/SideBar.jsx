@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import LinkPill from './LinkPill';
 import '../App.css'
 
 export default function Sidebar() {
@@ -9,13 +9,11 @@ export default function Sidebar() {
 
       <p>Navigation</p>
 
-      <Link to="/" style={{ color: '#60a5fa', textDecoration: 'none' }}>Home</Link>
+      <LinkPill to="/">Home</LinkPill>
       <br />
-
-      <Link to="/sync" style={{ color: '#60a5fa', textDecoration: 'none' }}>Sync</Link>
+      <LinkPill to="/sync">Sync</LinkPill>
       <br />
-
-      <Link to="/pref" style={{ color: '#60a5fa', textDecoration: 'none' }}>Pref</Link>
+      <LinkPill to="/pref">Pref</LinkPill>
 
       <img 
         src="https://www.sparkhacks.org/sparkhacks-logo.svg"
