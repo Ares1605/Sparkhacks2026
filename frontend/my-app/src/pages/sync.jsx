@@ -1,6 +1,5 @@
 import '../App.css'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import Sidebar from '../components/SideBar';
 import ProviderCard from '../components/ProviderCard';
 

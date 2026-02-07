@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import '../App.css'
 import ProductCard from "../components/ProductCard"
 import Sidebar from '../components/SideBar';
-import { Link } from "react-router-dom";
 
 function Home() {
   
