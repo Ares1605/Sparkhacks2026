@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -36,11 +35,16 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 	cmd := exec.CommandContext(r.Context(), python_executable, "sync-amazon-data.py")
 	cmd.Dir = "scripts"
 
-	output, err := cmd.CombinedOutput()
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	output, err := cmd.Output()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		msg := "Resync failed"
-		trimmed := strings.TrimSpace(string(output))
+		trimmed := strings.TrimSpace(stderr.String())
+		if trimmed == "" {
+			trimmed = strings.TrimSpace(string(output))
+		}
 		if trimmed != "" {
 			msg = msg + ": " + trimTo(trimmed, 1000)
 		}
@@ -64,30 +68,22 @@ func resync_handler(w http.ResponseWriter, r *http.Request) {
 func persistScriptOutput(ctx context.Context, output []byte) (importedOrders int, importedItems int, err error) {
 	_ = database.DeleteOrdersFromProvider(ctx, amazonProviderID)
 
-	scanner := bufio.NewScanner(bytes.NewReader(output))
-	scanner.Buffer(make([]byte, 64*1024), 10*1024*1024)
-	lineNo := 0
-	for scanner.Scan() {
-		lineNo++
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
+	trimmedOutput := bytes.TrimSpace(output)
+	if len(trimmedOutput) == 0 {
+		return 0, 0, nil
+	}
 
-		var parsed syncScriptOrder
-		if err := json.Unmarshal([]byte(line), &parsed); err != nil {
-			return importedOrders, importedItems, fmt.Errorf("script output line %d is not valid JSON: %w", lineNo, err)
-		}
+	var parsedOrders []syncScriptOrder
+	if err := json.Unmarshal(trimmedOutput, &parsedOrders); err != nil {
+		return 0, 0, fmt.Errorf("script output is not valid JSON array: %w; output=%s", err, trimTo(string(trimmedOutput), 1000))
+	}
 
+	for idx, parsed := range parsedOrders {
 		if err := persistOrder(ctx, parsed); err != nil {
-			return importedOrders, importedItems, fmt.Errorf("failed importing order on line %d: %w", lineNo, err)
+			return importedOrders, importedItems, fmt.Errorf("failed importing order at index %d: %w", idx, err)
 		}
-
 		importedOrders++
 		importedItems += len(parsed.Items)
-	}
-	if err := scanner.Err(); err != nil {
-		return importedOrders, importedItems, fmt.Errorf("failed reading script output: %w", err)
 	}
 
 	return importedOrders, importedItems, nil
