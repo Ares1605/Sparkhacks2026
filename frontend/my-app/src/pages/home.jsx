@@ -44,21 +44,32 @@ function Home() {
   }
 
   const [bookmark, setBookmarks] = useState(getInitialBookmarks);
+  const [notify, setNotify] = useState('');
 
   useEffect(() => {
     localStorage.setItem("bookmark", JSON.stringify(bookmark));
   }, [bookmark]);
+
+  const showNotification = (message) => {
+    setNotify(message);
+    setTimeout(() => setNotify(''), 2000);
+  };
 
   const addToBookmark = (product) => {
     setBookmarks((prev) => {
       if (prev.find((item) => item.id === product.id)) {
         return prev;
       }
+      showNotification(`${product.name} added to Bookmarks`);
       return [...prev, product];
     });
   };
 
   const removeFromBookmark = (id) => {
+    const product = bookmark.find((item) => item.id === id);
+    if (product) {
+      showNotification(`${product.name} removed from Bookmarks`);
+    }
     setBookmarks((prev) => prev.filter((item) => item.id !== id));
   }
 
@@ -107,6 +118,12 @@ function Home() {
       </div>
 
       <Sidebar/>
+
+      {notify && (
+        <div className="notification">
+          {notify}
+        </div>
+      )}
     </div>
   );
 }
